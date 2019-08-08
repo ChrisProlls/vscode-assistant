@@ -1,0 +1,56 @@
+{
+  "intents": [
+    {
+      "name": "SayHello"
+    },
+    {
+      "name": "CheckCode"
+    }
+  ],
+  "entities": [],
+  "composites": [],
+  "closedLists": [],
+  "regex_entities": [],
+  "model_features": [],
+  "regex_features": [],
+  "utterances": [
+    {
+      "text": "Hello",
+      "intent": "SayHello",
+      "entities": []
+    },
+    {
+      "text": "Hi",
+      "intent": "SayHello",
+      "entities": []
+    },
+    {
+      "text": "Check my code",
+      "intent": "CheckCode",
+      "entities": []
+    },
+    {
+      "text": "Check the code",
+      "intent": "CheckCode",
+      "entities": []
+    },
+    {
+      "text": "Check my project",
+      "intent": "CheckCode",
+      "entities": []
+    },
+    {
+      "text": "Is my code good ?",
+      "intent": "CheckCode",
+      "entities": []
+    }
+  ],
+  "patterns": [],
+  "patternAnyEntities": [],
+  "prebuiltEntities": [],
+  "luis_schema_version": "3.0.0",
+  "versionId": "0.1",
+  "name": "Intro",
+  "desc": "",
+  "culture": "en-us"
+}
