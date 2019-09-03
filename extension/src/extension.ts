@@ -11,10 +11,11 @@ class Message {
 }
 
 var messages = new Array<Message>();
+var user = "myUserId";
 
-messages.push({ content: "Hello world !", bot: false });
-messages.push({ content: "How are you !", bot: false });
-messages.push({ content: "Merci !", bot: true });
+messages.push({ content: "Bienvenue dans l'assistant le plus cool du monde !", bot: false });
+messages.push({ content: "Toujours eu peur des codes review ? Pas de panique, cet assistant va vous aider à améliorer votre code.", bot: false });
+messages.push({ content: "Faites Ctrl+Shift+P, et tapez Code Review : Dialog pour commencer à dialoguer avec votre assistant. Ce dernier vous guidera dans la démarche de revue de code.", bot: false });
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -59,12 +60,12 @@ export async function activate(context: vscode.ExtensionContext) {
 			webSocket: false
 		});
 
-		context.subscriptions.push(vscode.commands.registerCommand('extension.codeReview.dialog', () => showInputBox(directLine)));
+		context.subscriptions.push(vscode.commands.registerCommand('extension.codeReview.dialog', () => showInputBox(directLine, panel)));
 
 		directLine.activity$
 			.subscribe(
 				(activity: any) => {
-					if (activity.text) {
+					if (activity.text && activity.from.id !== user) {
 						messages.push({ content: activity.text, bot: true });
 						refreshView(panel);
 					}
@@ -79,15 +80,19 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(disposable);
 }
 
-function showInputBox(directLine: DirectLine) {
+function showInputBox(directLine: DirectLine, panel: vscode.WebviewPanel) {
 	vscode.window
 		.showInputBox()
 		.then(text => {
 			if (!text) {
 				return;
 			}
+
+			messages.push({ content: text, bot: false });
+			refreshView(panel);
+
 			directLine.postActivity({
-				from: { id: 'myUserId' },
+				from: { id: user},
 				type: 'message',
 				text: text
 			}).subscribe(
@@ -113,9 +118,17 @@ function getWebviewContent() {
 	  <style>
 		.message-content {
 			padding: 3px 7px;
-			background-color: SteelBlue
-			
-		} 
+			background-color: SteelBlue;
+			border-radius: 5px;
+		}
+
+		.message-container {
+			margin: 20px;
+		}
+
+		.message-bot {
+			background-color: SeaGreen;
+		}
 	  </style>
   </head>
   <body>
@@ -126,6 +139,9 @@ function getWebviewContent() {
 
 function getMessages() {
 	return messages
-	.map(message => `<div class='message-content'>${message.content}</div>`)
+	.map(message => `<div class='message-container'>
+						<span class='message-content ${(message.bot ? 'message-bot' : '')}'>${message.content}</span>
+					</div>
+					`)
 	.join('');
 }
