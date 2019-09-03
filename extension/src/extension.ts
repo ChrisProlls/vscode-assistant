@@ -1,10 +1,9 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import * as rp from 'request-promise';
 import * as ws from "ws";
 import * as xhr2 from "xhr2";
-import { DirectLine, ConnectionStatus } from 'botframework-directlinejs';
+import { DirectLine } from 'botframework-directlinejs';
 
 class Message {
 	content: string = "";
@@ -31,7 +30,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('extension.helloWorld', async () => {
+	let disposable = vscode.commands.registerCommand('extension.codeReview', async () => {
 		// The code you place here will be executed every time your command is executed
 
 		// Display a message box to the user
@@ -60,14 +59,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			webSocket: false
 		});
 
-		directLine.postActivity({
-			from: { id: 'myUserId' }, // required (from.name is optional)
-			type: 'message',
-			text: 'a message for you, Rudy'
-		}).subscribe(
-			id => console.log("Posted activity, assigned ID ", id),
-			error => console.log("Error posting activity", error)
-		);
+		context.subscriptions.push(vscode.commands.registerCommand('extension.codeReview.dialog', () => showInputBox(directLine)));
 
 		directLine.activity$
 			.subscribe(
@@ -87,43 +79,29 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(disposable);
 }
 
+function showInputBox(directLine: DirectLine) {
+	vscode.window
+		.showInputBox()
+		.then(text => {
+			if (!text) {
+				return;
+			}
+			directLine.postActivity({
+				from: { id: 'myUserId' },
+				type: 'message',
+				text: text
+			}).subscribe(
+				id => console.log("Posted activity, assigned ID ", id), 
+				error => console.log("Error posting activity", error)
+			);
+		});
+}
+
 function refreshView(panel: vscode.WebviewPanel) {
 	panel.webview.html = getWebviewContent();
 }
-
-/*function StartConversation() {
-	const options = {
-		method: "POST",
-		uri: "https://directline.botframework.com/api/conversations",
-		json: true,
-		headers: {
-			Authorization: `BotConnector 8TScDTxfx18.Fepd3EvaLQvIWrvDCzA3Q1Hc09HPbffoLXWv-bxPROg`
-		}
-	};
-	rp(options)
-		.then(response => {
-			console.log(response);
-		})
-		.error(reason => {
-			console.log(reason);
-		});
-}*/
-
 // this method is called when your extension is deactivated
 export function deactivate() { }
-
-var findCommand = function () {
-	vscode.commands.getCommands(true).then(
-		function (cmds) {
-			console.log("fulfilled");
-			console.log(cmds);
-		},
-		function () {
-			console.log("failed");
-			console.log(arguments);
-		}
-	);
-};
 
 function getWebviewContent() {
 	return `<!DOCTYPE html>
