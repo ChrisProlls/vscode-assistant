@@ -60,7 +60,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			webSocket: false
 		});
 
-		context.subscriptions.push(vscode.commands.registerCommand('extension.codeReview.dialog', () => showInputBox(directLine, panel)));
+		context.subscriptions.push(vscode.commands.registerCommand('extension.codeReview.dialog', () => showInputBox(directLine, panel, errors)));
 
 		directLine.activity$
 			.subscribe(
@@ -80,7 +80,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(disposable);
 }
 
-function showInputBox(directLine: DirectLine, panel: vscode.WebviewPanel) {
+function showInputBox(directLine: DirectLine, panel: vscode.WebviewPanel, errors: Array<any>) {
 	vscode.window
 		.showInputBox()
 		.then(text => {
@@ -94,7 +94,10 @@ function showInputBox(directLine: DirectLine, panel: vscode.WebviewPanel) {
 			directLine.postActivity({
 				from: { id: user},
 				type: 'message',
-				text: text
+				text: text,
+				channelData: {
+					errors: errors
+				}
 			}).subscribe(
 				id => console.log("Posted activity, assigned ID ", id), 
 				error => console.log("Error posting activity", error)

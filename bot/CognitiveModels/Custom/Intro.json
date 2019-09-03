@@ -15,32 +15,32 @@
   "regex_features": [],
   "utterances": [
     {
-      "text": "Hello",
+      "text": "Bonjour",
       "intent": "SayHello",
       "entities": []
     },
     {
-      "text": "Hi",
+      "text": "Salut",
       "intent": "SayHello",
       "entities": []
     },
     {
-      "text": "Check my code",
+      "text": "V�rifier mon code",
       "intent": "CheckCode",
       "entities": []
     },
     {
-      "text": "Check the code",
+      "text": "V�rifier le code",
       "intent": "CheckCode",
       "entities": []
     },
     {
-      "text": "Check my project",
+      "text": "V�rifier mon projet",
       "intent": "CheckCode",
       "entities": []
     },
     {
-      "text": "Is my code good ?",
+      "text": "Comment se porte mon code ?",
       "intent": "CheckCode",
       "entities": []
     }

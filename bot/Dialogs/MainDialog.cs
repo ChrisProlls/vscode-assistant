@@ -13,6 +13,7 @@ using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Schema;
 using Microsoft.Extensions.Logging;
 using Microsoft.Recognizers.Text.DataTypes.TimexExpression;
+using Newtonsoft.Json;
 
 namespace Microsoft.BotBuilderSamples.Dialogs
 {
@@ -51,9 +52,6 @@ namespace Microsoft.BotBuilderSamples.Dialogs
                 return await stepContext.NextAsync(null, cancellationToken);
             }
 
-            var helloMessageText = "Hey ! Are you here ?";
-            var helloMessage = MessageFactory.Text(helloMessageText, helloMessageText, InputHints.IgnoringInput);
-            await stepContext.Context.SendActivityAsync(helloMessage);
             return new DialogTurnResult(DialogTurnStatus.Waiting);
         }
 
@@ -79,10 +77,19 @@ namespace Microsoft.BotBuilderSamples.Dialogs
                 //    return await stepContext.BeginDialogAsync(nameof(BookingDialog), bookingDetails, cancellationToken);
                 case Intro.Intent.SayHello:
                     return await stepContext.BeginDialogAsync(nameof(SayHelloDialog), cancellationToken);
+                case Intro.Intent.CheckCode:
+                    {
+                        var data = stepContext.Context.Activity.ChannelData as dynamic;
+
+                        var errorMsgString = $"Erreur trouvé : {JsonConvert.SerializeObject(data.errors)}";
+                        var errorMsg = MessageFactory.Text(errorMsgString, errorMsgString, InputHints.IgnoringInput);
+                        await stepContext.Context.SendActivityAsync(errorMsg, cancellationToken);
+                        break;
+                    }
 
                 default:
                     // Catch all for unhandled intents
-                    var didntUnderstandMessageText = $"Sorry, I didn't get that. Please try asking in a different way (intent was {luisResult.TopIntent().intent})";
+                    var didntUnderstandMessageText = $"Désolé, je n'ai pas très bien compris. Veuillez recommencer.)";
                     var didntUnderstandMessage = MessageFactory.Text(didntUnderstandMessageText, didntUnderstandMessageText, InputHints.IgnoringInput);
                     await stepContext.Context.SendActivityAsync(didntUnderstandMessage, cancellationToken);
                     break;
