@@ -16,6 +16,7 @@ var user = "myUserId";
 messages.push({ content: "Bienvenue dans l'assistant le plus cool du monde !", bot: false });
 messages.push({ content: "Toujours eu peur des codes review ? Pas de panique, cet assistant va vous aider à améliorer votre code.", bot: false });
 messages.push({ content: "Faites Ctrl+Shift+P, et tapez Code Review : Dialog pour commencer à dialoguer avec votre assistant. Ce dernier vous guidera dans la démarche de revue de code.", bot: false });
+messages.push({ content: "TEst <br> TEST.<br> TEST.", bot: false });
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -123,6 +124,7 @@ function getWebviewContent() {
 			padding: 3px 7px;
 			background-color: SteelBlue;
 			border-radius: 5px;
+			display: inline-block;
 		}
 
 		.message-container {
@@ -143,7 +145,7 @@ function getWebviewContent() {
 function getMessages() {
 	return messages
 	.map(message => `<div class='message-container'>
-						<span class='message-content ${(message.bot ? 'message-bot' : '')}'>${message.content}</span>
+						<div class='message-content ${(message.bot ? 'message-bot' : '')}'>${message.content}</div>
 					</div>
 					`)
 	.join('');

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CoreBot.Dialogs;
+using CoreBot.Models;
 using Luis;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Dialogs;
@@ -80,16 +81,36 @@ namespace Microsoft.BotBuilderSamples.Dialogs
                 case Intro.Intent.CheckCode:
                     {
                         var data = stepContext.Context.Activity.ChannelData as dynamic;
+                        var message = string.Empty;
 
-                        var errorMsgString = $"Erreur trouvé : {JsonConvert.SerializeObject(data.errors)}";
-                        var errorMsg = MessageFactory.Text(errorMsgString, errorMsgString, InputHints.IgnoringInput);
+                        try
+                        {
+                            var errors = JsonConvert.DeserializeObject<List<ClientError>>(JsonConvert.SerializeObject(data.errors));
+
+                            message = "Erreur trouvé :<br>";
+
+                            foreach (var item in errors)
+                            {
+                                message += $"Ligne {item.Line} : {item.Message}<br>";
+
+                                if (item.Source == "tslint")
+                                    message += $"https://palantir.github.io/tslint/rules/{item.Code}<br>";
+                            }
+
+                        }catch(Exception ex)
+                        {
+                            message = ex.ToString();
+                        }
+
+                        var errorMsg = MessageFactory.Text(message, message, InputHints.IgnoringInput);
                         await stepContext.Context.SendActivityAsync(errorMsg, cancellationToken);
+
                         break;
                     }
 
                 default:
                     // Catch all for unhandled intents
-                    var didntUnderstandMessageText = $"Désolé, je n'ai pas très bien compris. Veuillez recommencer.)";
+                    var didntUnderstandMessageText = $"Désolé, je n'ai pas très bien compris. Veuillez recommencer.";
                     var didntUnderstandMessage = MessageFactory.Text(didntUnderstandMessageText, didntUnderstandMessageText, InputHints.IgnoringInput);
                     await stepContext.Context.SendActivityAsync(didntUnderstandMessage, cancellationToken);
                     break;
