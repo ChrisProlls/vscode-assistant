@@ -22,7 +22,7 @@
 			{
 				"command": "extension.codeReview.dialog",
 				"title": "Code Review : Dialog"
-			  }
+			}
 		]
 	},
 	"scripts": {

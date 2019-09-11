@@ -16,7 +16,6 @@ var user = "myUserId";
 messages.push({ content: "Bienvenue dans l'assistant le plus cool du monde !", bot: false });
 messages.push({ content: "Toujours eu peur des codes review ? Pas de panique, cet assistant va vous aider à améliorer votre code.", bot: false });
 messages.push({ content: "Faites Ctrl+Shift+P, et tapez Code Review : Dialog pour commencer à dialoguer avec votre assistant. Ce dernier vous guidera dans la démarche de revue de code.", bot: false });
-messages.push({ content: "TEst <br> TEST.<br> TEST.", bot: false });
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -50,7 +49,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					message: item.message,
 					code: item.code,
 					source: item.source,
-					line: item.range.start.line
+					line: item.range.start.line,
 				};
 			});
 

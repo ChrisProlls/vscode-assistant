@@ -9,7 +9,7 @@ export class Example1Component implements OnInit {
 
   constructor() { }
 
-  ngOnInit() {
+  ngOnInit( {
             var test = "test";
 
   }

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using CoreBot.Dialogs;
@@ -94,7 +95,12 @@ namespace Microsoft.BotBuilderSamples.Dialogs
                                 message += $"Ligne {item.Line} : {item.Message}<br>";
 
                                 if (item.Source == "tslint")
+                                {
+                                    var reg = new Regex(@"\(([^)]+)\)");
+                                    var flag = reg.Match(item.Message);
+
                                     message += $"https://palantir.github.io/tslint/rules/{item.Code}<br>";
+                                }
                             }
 
                         }catch(Exception ex)
