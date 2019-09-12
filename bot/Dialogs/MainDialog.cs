@@ -83,12 +83,13 @@ namespace Microsoft.BotBuilderSamples.Dialogs
                     {
                         var data = stepContext.Context.Activity.ChannelData as dynamic;
                         var message = string.Empty;
+                        var response = new BotResponse();
 
                         try
                         {
                             var errors = JsonConvert.DeserializeObject<List<ClientError>>(JsonConvert.SerializeObject(data.errors));
 
-                            message = "Erreur trouvé :<br>";
+                            message = "Erreur(s) trouvée(s) :<br>";
 
                             foreach (var item in errors)
                             {
@@ -97,19 +98,26 @@ namespace Microsoft.BotBuilderSamples.Dialogs
                                 if (item.Source == "tslint")
                                 {
                                     var reg = new Regex(@"\(([^)]+)\)");
-                                    var flag = reg.Match(item.Message);
+                                    var groups = reg.Match(item.Message).Groups;
 
-                                    message += $"https://palantir.github.io/tslint/rules/{item.Code}<br>";
+                                    if(groups.Count > 0)
+                                    message += $"https://palantir.github.io/tslint/rules/{groups[1]}<br>";
                                 }
                             }
+
+                            response.Result = 100 - errors.Count;
 
                         }catch(Exception ex)
                         {
                             message = ex.ToString();
                         }
 
-                        var errorMsg = MessageFactory.Text(message, message, InputHints.IgnoringInput);
-                        await stepContext.Context.SendActivityAsync(errorMsg, cancellationToken);
+                        if (response.Result > 90)
+                            await SendOk(stepContext, message, response, cancellationToken);
+                        else if(response.Result > 50 && response.Result < 90)
+                            await SendMiddle(stepContext, message, response, cancellationToken);
+                        else
+                            await SendHell(stepContext, message, response, cancellationToken);
 
                         break;
                     }
@@ -123,6 +131,31 @@ namespace Microsoft.BotBuilderSamples.Dialogs
             }
 
             return await stepContext.NextAsync(null, cancellationToken);
+        }
+
+        private Task SendHell(WaterfallStepContext stepContext, string message, BotResponse response, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        private Task SendMiddle(WaterfallStepContext stepContext, string message, BotResponse response, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        private async Task SendOk(WaterfallStepContext stepContext, string message, BotResponse response, CancellationToken cancellationToken)
+        {
+            var successGif = MessageFactory.Text("https://media.giphy.com/media/jlVuRWCKNwYCc/giphy.gif", "https://media.giphy.com/media/jlVuRWCKNwYCc/giphy.gif", InputHints.IgnoringInput);
+            response.IsImage = true;
+            successGif.ChannelData = response;
+            await stepContext.Context.SendActivityAsync(successGif, cancellationToken);
+
+            await Task.Delay(3000);
+
+            var errorMsg = MessageFactory.Text(message, message, InputHints.IgnoringInput);
+            response.IsImage = false;
+            errorMsg.ChannelData = response;
+            await stepContext.Context.SendActivityAsync(errorMsg, cancellationToken);
         }
 
         private async Task<DialogTurnResult> FinalStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)

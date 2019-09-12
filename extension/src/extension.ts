@@ -8,6 +8,12 @@ import { DirectLine } from 'botframework-directlinejs';
 class Message {
 	content: string = "";
 	bot: boolean = false;
+	response?: BotResponse;
+}
+
+class BotResponse {
+	IsImage: boolean = false;
+	Result: number = 0;
 }
 
 var messages = new Array<Message>();
@@ -66,7 +72,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			.subscribe(
 				(activity: any) => {
 					if (activity.text && activity.from.id !== user) {
-						messages.push({ content: activity.text, bot: true });
+						messages.push({ content: activity.text, bot: true, response: activity.channelData });
 						refreshView(panel);
 					}
 
@@ -92,14 +98,14 @@ function showInputBox(directLine: DirectLine, panel: vscode.WebviewPanel, errors
 			refreshView(panel);
 
 			directLine.postActivity({
-				from: { id: user},
+				from: { id: user },
 				type: 'message',
 				text: text,
 				channelData: {
 					errors: errors
 				}
 			}).subscribe(
-				id => console.log("Posted activity, assigned ID ", id), 
+				id => console.log("Posted activity, assigned ID ", id),
 				error => console.log("Error posting activity", error)
 			);
 		});
@@ -143,9 +149,21 @@ function getWebviewContent() {
 
 function getMessages() {
 	return messages
-	.map(message => `<div class='message-container'>
-						<div class='message-content ${(message.bot ? 'message-bot' : '')}'>${message.content}</div>
+		.map(message => {
+			var content = '';
+
+			if(message.response) {
+				if(message.response.IsImage) {
+					content = `<img src="${message.content}">`;
+				}
+			} else {
+				content = `<div class='message-content ${(message.bot ? 'message-bot' : '')}'>${message.content}</div>`;
+			}
+
+			return `<div class='message-container'>
+						${content}
 					</div>
-					`)
-	.join('');
+					`;
+		})
+		.join('');
 }
