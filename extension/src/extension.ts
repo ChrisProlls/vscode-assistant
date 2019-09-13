@@ -45,28 +45,17 @@ export async function activate(context: vscode.ExtensionContext) {
 			'codeReviewAssistant',
 			'Code Review Assistant',
 			vscode.ViewColumn.One,
-			{}
+			{
+				enableScripts: true
+			}
 		);
-		const ide = vscode.languages.getDiagnostics();
-		const errors = ide
-			.filter(item => item[1].length > 0)[0][1]
-			.map(item => {
-				return {
-					message: item.message,
-					code: item.code,
-					source: item.source,
-					line: item.range.start.line,
-				};
-			});
-
-		console.log(errors);
 
 		var directLine = new DirectLine({
 			secret: 'Wo9qxhbpTmI.CiKhpuEelxxajOrNkf24ora1l2uxARupIYsf45l8Urs',
 			webSocket: false
 		});
 
-		context.subscriptions.push(vscode.commands.registerCommand('extension.codeReview.dialog', () => showInputBox(directLine, panel, errors)));
+		context.subscriptions.push(vscode.commands.registerCommand('extension.codeReview.dialog', () => showInputBox(directLine, panel)));
 
 		directLine.activity$
 			.subscribe(
@@ -86,7 +75,24 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(disposable);
 }
 
-function showInputBox(directLine: DirectLine, panel: vscode.WebviewPanel, errors: Array<any>) {
+function getErrors() {
+	const ide = vscode.languages.getDiagnostics();
+	const errors = ide
+		.filter(item => item[1].length > 0)
+		.map(item => item[1])
+		.reduce((prev, next) => prev.concat(next), [])
+		.map(item => {
+			return {
+				message: item.message,
+				code: item.code,
+				source: item.source,
+				line: item.range.start.line,
+			};
+		});
+	return errors;
+}
+
+function showInputBox(directLine: DirectLine, panel: vscode.WebviewPanel) {
 	vscode.window
 		.showInputBox()
 		.then(text => {
@@ -96,6 +102,8 @@ function showInputBox(directLine: DirectLine, panel: vscode.WebviewPanel, errors
 
 			messages.push({ content: text, bot: false });
 			refreshView(panel);
+
+			const errors = getErrors();
 
 			directLine.postActivity({
 				from: { id: user },
@@ -143,6 +151,10 @@ function getWebviewContent() {
   </head>
   <body>
 	  ${getMessages()}
+
+	  <script> 
+	  	setInterval(() => window.scrollTo(0,document.body.scrollHeight), 500);
+	  </script>
   </body>
   </html>`;
 }

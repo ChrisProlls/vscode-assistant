@@ -114,8 +114,6 @@ namespace Microsoft.BotBuilderSamples.Dialogs
 
                         if (response.Result > 90)
                             await SendOk(stepContext, message, response, cancellationToken);
-                        else if(response.Result > 50 && response.Result < 90)
-                            await SendMiddle(stepContext, message, response, cancellationToken);
                         else
                             await SendHell(stepContext, message, response, cancellationToken);
 
@@ -133,14 +131,25 @@ namespace Microsoft.BotBuilderSamples.Dialogs
             return await stepContext.NextAsync(null, cancellationToken);
         }
 
-        private Task SendHell(WaterfallStepContext stepContext, string message, BotResponse response, CancellationToken cancellationToken)
+        private async Task SendHell(WaterfallStepContext stepContext, string message, BotResponse response, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
-        }
+            var somethingWrong = MessageFactory.Text("https://media.giphy.com/media/fwDprKZ2a3dqUwvEtK/giphy.gif", "https://media.giphy.com/media/fwDprKZ2a3dqUwvEtK/giphy.gif", InputHints.IgnoringInput);
+            response.IsImage = true;
+            somethingWrong.ChannelData = response;
+            await stepContext.Context.SendActivityAsync(somethingWrong);
+            await Task.Delay(4000);
 
-        private Task SendMiddle(WaterfallStepContext stepContext, string message, BotResponse response, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
+            var errorMsg = MessageFactory.Text("J'ai détecté beaucoup trop d'erreurs dans votre code ! Ne bougez pas, j'ai la solution ...", "", InputHints.IgnoringInput);
+            response.IsImage = false;
+            errorMsg.ChannelData = response;
+            await stepContext.Context.SendActivityAsync(errorMsg, cancellationToken);
+            await Task.Delay(4000);
+
+            var warnings = MessageFactory.Text("https://ljdchost.com/038/E7BPLat.jpg", "https://ljdchost.com/038/E7BPLat.jpg", InputHints.IgnoringInput);
+            response.IsImage = true;
+            warnings.ChannelData = response;
+            await stepContext.Context.SendActivityAsync(warnings);
+            await Task.Delay(4000);
         }
 
         private async Task SendOk(WaterfallStepContext stepContext, string message, BotResponse response, CancellationToken cancellationToken)
