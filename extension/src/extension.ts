@@ -150,18 +150,16 @@ function getWebviewContent() {
 function getMessages() {
 	return messages
 		.map(message => {
-			var content = '';
+			var content = message.content;
 
-			if(message.response) {
-				if(message.response.IsImage) {
+			if(message.response && message.response.IsImage) {
 					content = `<img src="${message.content}">`;
-				}
-			} else {
-				content = `<div class='message-content ${(message.bot ? 'message-bot' : '')}'>${message.content}</div>`;
 			}
 
 			return `<div class='message-container'>
-						${content}
+						<div class='message-content ${(message.bot ? 'message-bot' : '')}'>
+							${content}
+						</div>
 					</div>
 					`;
 		})
