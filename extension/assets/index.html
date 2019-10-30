@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport"
+		  content="width=device-width, initial-scale=1.0">
+	<title>Code Review</title>
+	<style>
+		.message-content {
+			padding: 3px 7px;
+			background-color: SteelBlue;
+			border-radius: 5px;
+			display: inline-block;
+			font-size: 25px;
+		}
+
+		.message-container {
+			margin: 20px;
+		}
+
+		#message-block {
+			position: absolute;
+			max-height: 100vh;
+			width: 100%;
+			overflow: hidden;
+		}
+
+		.message-bot {
+			background-color: SeaGreen;
+		}
+
+		canvas {
+			display: block;
+			position: absolute;
+			height: 100%;
+			width: 100%;
+			top: 0;
+			left: 0;
+		}
+
+		html,
+		body {
+			height: 100%;
+			width: 100%;
+			position: relative;
+			overflow: hidden;
+		}
+
+		* {
+			margin: 0;
+			padding: 0;
+		}
+	</style>
+</head>
+
+<body>
+	<canvas id="c"></canvas>
+	<div id="message-block"></div>
+
+	<script>
+		var refreshSize = false;
+
+		window.addEventListener('message', event => {
+			const message = event.data; // The JSON data our extension sent
+			const messagesBlock = document.getElementById('message-block');
+			var content = message.content;
+
+			if (message.response && message.response.IsImage) {
+				content = `<img src="${message.content}">`;
+			}
+
+			const div = document.createElement('div');
+			div.className = 'message-container';
+			div.innerHTML = `<div class='message-content ${(message.bot ? 'message-bot' : '')}'>
+									${content}
+								</div>`;
+
+			messagesBlock.appendChild(div);
+
+			setTimeout(() => {
+				messagesBlock.scrollTo(0, document.body.scrollHeight);
+
+				refreshSize = true;
+			}, 500);
+		});
+
+		function launchMatrix() {
+			var c = document.getElementById("c");
+			var ctx = c.getContext("2d");
+
+			c.height = window.innerHeight;
+			c.width = window.innerWidth;
+
+			//chinese characters - taken from the unicode charset
+			var chinese = "田由甲申甴电甶男甸甹町画甼甽甾甿畀畁畂畃畄畅畆畇畈畉畊畋界畍畎畏畐畑";
+			//converting the string into an array of single characters
+			chinese = chinese.split("");
+
+			var font_size = 17;
+			var columns = c.width / font_size; //number of columns for the rain
+			//an array of drops - one per column
+			var drops = [];
+			//x below is the x coordinate
+			//1 = y co-ordinate of the drop(same for every drop initially)
+			for (var x = 0; x < columns; x++)
+				drops[x] = 1;
+
+			//drawing the characters
+			function draw() {
+				/*if (refreshSize) {
+					refreshSize = false;
+
+					c = document.getElementById("c");
+					c.height = document.body.scrollHeight;
+
+					ctx = c.getContext("2d");
+
+					console.log("Height :" + c.height);
+					console.log("Body height :" + document.body.scrollHeight);
+				}*/
+
+				//Black BG for the canvas
+				//translucent BG to show trail
+				ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+				ctx.fillRect(0, 0, c.width, c.height);
+
+				ctx.fillStyle = "#0F0"; //green text
+				ctx.font = font_size + "px arial";
+				//looping over drops
+				for (var i = 0; i < drops.length; i++) {
+					//a random chinese character to print
+					var text = chinese[Math.floor(Math.random() * chinese.length)];
+					//x = i*font_size, y = value of drops[i]*font_size
+					ctx.fillText(text, i * font_size, drops[i] * font_size);
+
+					//sending the drop back to the top randomly after it has crossed the screen
+					//adding a randomness to the reset to make the drops scattered on the Y axis
+					if (drops[i] * font_size > c.height && Math.random() > 0.975)
+						drops[i] = 0;
+
+					//incrementing Y coordinate
+					drops[i]++;
+				}
+			}
+
+			setInterval(draw, 33);
+		}
+
+		setTimeout(() => {
+			launchMatrix();
+		}, 1000);
+	</script>
+</body>
+
+</html>
