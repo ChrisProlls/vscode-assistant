@@ -11,6 +11,7 @@ class Message {
 	content: string = "";
 	bot: boolean = false;
 	response?: BotResponse;
+	hellMode = false;
 }
 
 class BotResponse {
@@ -21,9 +22,9 @@ class BotResponse {
 var messages = new Array<Message>();
 var user = "myUserId";
 
-messages.push({ content: "Bienvenue dans l'assistant le plus cool du monde !", bot: false });
-messages.push({ content: "Toujours eu peur des codes review ? Pas de panique, cet assistant va vous aider à améliorer votre code.", bot: false });
-messages.push({ content: "Faites Ctrl+Shift+P, et tapez Code Review : Dialog pour commencer à dialoguer avec votre assistant. Ce dernier vous guidera dans la démarche de revue de code.", bot: false });
+messages.push({ content: "Bienvenue dans l'assistant le plus cool du monde !", bot: false, hellMode: false });
+messages.push({ content: "Toujours eu peur des codes review ? Pas de panique, cet assistant va vous aider à améliorer votre code.", bot: false, hellMode: false });
+messages.push({ content: "Faites Ctrl+Shift+P, et tapez Code Review : Dialog pour commencer à dialoguer avec votre assistant. Ce dernier vous guidera dans la démarche de revue de code.", bot: false, hellMode: false });
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -48,8 +49,12 @@ export async function activate(context: vscode.ExtensionContext) {
 			'Code Review Assistant',
 			vscode.ViewColumn.One,
 			{
-				enableScripts: true
-			}
+				enableScripts: true,
+				/*localResourceRoots: [
+					vscode.Uri.file(path.join(context.extensionPath, 'assets'))
+				]*/
+			},
+
 		);
 
 		var directLine = new DirectLine({
@@ -63,14 +68,14 @@ export async function activate(context: vscode.ExtensionContext) {
 			.subscribe(
 				(activity: any) => {
 					if (activity.text && activity.from.id !== user) {
-						sendMessage(panel, { content: activity.text, bot: true, response: activity.channelData });
+						sendMessage(panel, { content: activity.text, bot: true, response: activity.channelData, hellMode: false });
 					}
 
 					console.log("received activity ", activity);
 				}
 			);
 
-		panel.webview.html = getWebviewContent(context.extensionPath);	
+		panel.webview.html = getWebviewContent(context.extensionPath);
 	});
 
 	context.subscriptions.push(disposable);
@@ -101,21 +106,25 @@ function showInputBox(directLine: DirectLine, panel: vscode.WebviewPanel, extens
 				return;
 			}
 
-			sendMessage(panel, { content: text, bot: false });
+			sendMessage(panel, { content: text, bot: false, hellMode: false });
 
 			const errors = getErrors();
 
-			directLine.postActivity({
-				from: { id: user },
-				type: 'message',
-				text: text,
-				channelData: {
-					errors: errors
-				}
-			}).subscribe(
-				id => console.log("Posted activity, assigned ID ", id),
-				error => console.log("Error posting activity", error)
-			);
+			if (errors.length < 15) {
+				directLine.postActivity({
+					from: { id: user },
+					type: 'message',
+					text: text,
+					channelData: {
+						errors: errors
+					}
+				}).subscribe(
+					id => console.log("Posted activity, assigned ID ", id),
+					error => console.log("Error posting activity", error)
+				);
+			} else {
+				sendMessage(panel, { content: '', bot: false, hellMode: true });
+			}
 		});
 }
 
@@ -126,12 +135,29 @@ function sendMessage(panel: vscode.WebviewPanel, message: Message) {
 export function deactivate() { }
 
 function getWebviewContent(extensionPath: string) {
-	const content = fs.readFileSync(
+	const starfieldJs = fs.readFileSync(
+		path.join(extensionPath, 'assets', 'js', 'starfield.js'),
+		{
+			encoding: 'utf8'
+		}
+	);
+
+	const spaceinvadersJs = fs.readFileSync(
+		path.join(extensionPath, 'assets', 'js', 'spaceinvaders.js'),
+		{
+			encoding: 'utf8'
+		}
+	);
+
+	var content = fs.readFileSync(
 		path.join(extensionPath, 'assets', 'index.html'),
 		{
 			encoding: 'utf8'
 		}
 	);
+
+	content = content.replace("{{starfieldJs}}", `<script>${starfieldJs}</script>`);
+	content = content.replace("{{spaceinvadersJs}}", `<script>${spaceinvadersJs}</script>`);
 
 	return content;
 }

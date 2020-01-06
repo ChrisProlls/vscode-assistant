@@ -6,6 +6,9 @@
 	<meta name="viewport"
 		  content="width=device-width, initial-scale=1.0">
 	<title>Code Review</title>
+	<link rel="stylesheet"
+		  type="text/css"
+		  href="css/blackhole.css">
 	<style>
 		.message-content {
 			padding: 3px 7px;
@@ -57,13 +60,64 @@
 <body>
 	<canvas id="c"></canvas>
 	<div id="message-block"></div>
+	<canvas id="gameCanvas"></canvas>
 
+	{{starfieldJs}}
+	{{spaceinvadersJs}}
 	<script>
-		var refreshSize = false;
+		var drawIntervalId = 0;
+		var canvas = document.getElementById("gameCanvas");
+		canvas.width = 800;
+		canvas.height = 600;
+		//  Create the game.
+		var game = new Game();
+
+		//  Initialise it with the game canvas.
+		game.initialise(canvas);
+		console.log('Initialize done');
+
+		function launchHellMode() {
+			clearInterval(drawIntervalId);
+
+			let matrixCanvas = document.getElementById('c');
+			let messageBlocks = document.getElementById('message-block')
+
+			matrixCanvas.parentNode.removeChild(matrixCanvas);
+			messageBlocks.parentNode.removeChild(messageBlocks);
+
+			//  Start the game.
+			game.start();
+
+			//  Listen for keyboard events.
+			var pressedKeys = [];
+			window.addEventListener("keydown", function keydown(e) {
+				var keycode = window.event.keycode || e.which;
+				if (!pressedKeys[keycode])
+					pressedKeys[keycode] = true;
+				//  Supress further processing of left/right/space (37/29/32)
+				if (keycode == 37 || keycode == 39 || keycode == 32) {
+					e.preventDefault();
+				}
+				game.keyDown(keycode);
+			});
+			window.addEventListener("keyup", function keydown(e) {
+				var keycode = window.event.keycode || e.which;
+				if (pressedKeys[keycode])
+					delete pressedKeys[keycode];
+				game.keyUp(keycode);
+			});
+		}
 
 		window.addEventListener('message', event => {
 			const message = event.data; // The JSON data our extension sent
 			const messagesBlock = document.getElementById('message-block');
+
+			if (message.hellMode) {
+				launchHellMode();
+
+				return;
+			}
+
 			var content = message.content;
 
 			if (message.response && message.response.IsImage) {
@@ -80,8 +134,6 @@
 
 			setTimeout(() => {
 				messagesBlock.scrollTo(0, document.body.scrollHeight);
-
-				refreshSize = true;
 			}, 500);
 		});
 
@@ -108,17 +160,6 @@
 
 			//drawing the characters
 			function draw() {
-				/*if (refreshSize) {
-					refreshSize = false;
-
-					c = document.getElementById("c");
-					c.height = document.body.scrollHeight;
-
-					ctx = c.getContext("2d");
-
-					console.log("Height :" + c.height);
-					console.log("Body height :" + document.body.scrollHeight);
-				}*/
 
 				//Black BG for the canvas
 				//translucent BG to show trail
@@ -144,7 +185,7 @@
 				}
 			}
 
-			setInterval(draw, 33);
+			drawIntervalId = setInterval(draw, 33);
 		}
 
 		setTimeout(() => {
