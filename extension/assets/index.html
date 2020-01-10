@@ -62,19 +62,16 @@
 	<div id="message-block"></div>
 	<canvas id="gameCanvas"></canvas>
 
-	{{starfieldJs}}
 	{{spaceinvadersJs}}
 	<script>
 		var drawIntervalId = 0;
 		var canvas = document.getElementById("gameCanvas");
-		canvas.width = 800;
-		canvas.height = 600;
+
 		//  Create the game.
 		var game = new Game();
+		game.backgroundSound = '{{gameSoundUrl}}';
 
-		//  Initialise it with the game canvas.
-		game.initialise(canvas);
-		console.log('Initialize done');
+		console.log(game.backgroundSound);
 
 		function launchHellMode() {
 			clearInterval(drawIntervalId);
@@ -84,6 +81,12 @@
 
 			matrixCanvas.parentNode.removeChild(matrixCanvas);
 			messageBlocks.parentNode.removeChild(messageBlocks);
+
+			canvas.width = window.innerWidth;
+			canvas.height = window.innerHeight;
+
+			//  Initialise it with the game canvas.
+			game.initialise(canvas);
 
 			//  Start the game.
 			game.start();

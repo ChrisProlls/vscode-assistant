@@ -49,10 +49,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			'Code Review Assistant',
 			vscode.ViewColumn.One,
 			{
-				enableScripts: true,
-				/*localResourceRoots: [
-					vscode.Uri.file(path.join(context.extensionPath, 'assets'))
-				]*/
+				enableScripts: true
 			},
 
 		);
@@ -75,7 +72,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				}
 			);
 
-		panel.webview.html = getWebviewContent(context.extensionPath);
+		panel.webview.html = getWebviewContent(context.extensionPath, panel.webview);
 	});
 
 	context.subscriptions.push(disposable);
@@ -134,13 +131,12 @@ function sendMessage(panel: vscode.WebviewPanel, message: Message) {
 // this method is called when your extension is deactivated
 export function deactivate() { }
 
-function getWebviewContent(extensionPath: string) {
-	const starfieldJs = fs.readFileSync(
-		path.join(extensionPath, 'assets', 'js', 'starfield.js'),
-		{
-			encoding: 'utf8'
-		}
+function getWebviewContent(extensionPath: string, webView: vscode.Webview) {
+	const onDiskPath = vscode.Uri.file(
+		path.join(extensionPath, 'assets', 'sounds', 'gameSound.mp3')
 	);
+
+	const gameSound = webView.asWebviewUri(onDiskPath);
 
 	const spaceinvadersJs = fs.readFileSync(
 		path.join(extensionPath, 'assets', 'js', 'spaceinvaders.js'),
@@ -156,8 +152,9 @@ function getWebviewContent(extensionPath: string) {
 		}
 	);
 
-	content = content.replace("{{starfieldJs}}", `<script>${starfieldJs}</script>`);
+	//content = content.replace("{{starfieldJs}}", `<script>${starfieldJs}</script>`);
 	content = content.replace("{{spaceinvadersJs}}", `<script>${spaceinvadersJs}</script>`);
+	content = content.replace("{{gameSoundUrl}}", gameSound.toString());
 
 	return content;
 }

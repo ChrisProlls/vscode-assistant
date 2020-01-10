@@ -39,8 +39,8 @@ function Game() {
         invaderDropDistance: 20,
         rocketVelocity: 120,
         rocketMaxFireRate: 2,
-        gameWidth: 400,
-        gameHeight: 300,
+        gameWidth: 800,
+        gameHeight: 600,
         fps: 50,
         debugMode: false,
         invaderRanks: 5,
@@ -247,10 +247,10 @@ function WelcomeState() {
 WelcomeState.prototype.enter = function(game) {
 
     // Create and load the sounds.
-    /*game.sounds = new Sounds();
+    game.sounds = new Sounds();
     game.sounds.init();
-    game.sounds.loadSound('shoot', 'sounds/shoot.wav');
-    game.sounds.loadSound('bang', 'sounds/bang.wav');
+    game.sounds.loadSound('gameSound', game.backgroundSound);
+    /*game.sounds.loadSound('bang', 'sounds/bang.wav');
     game.sounds.loadSound('explosion', 'sounds/explosion.wav');*/
 };
 
@@ -363,8 +363,8 @@ PlayState.prototype.enter = function(game) {
     for(var rank = 0; rank < ranks; rank++){
         for(var file = 0; file < files; file++) {
             invaders.push(new Invader(
-                (game.width / 2) + ((files/2 - file) * 200 / files),
-                (game.gameBounds.top + rank * 20),
+                (game.width / 2) + ((files/2 - file) * 600 / files),
+                (game.gameBounds.top + rank * 60),
                 rank, file, 'Invader'));
         }
     }
@@ -491,7 +491,7 @@ PlayState.prototype.update = function(game, dt) {
         }
         if(bang) {
             this.invaders.splice(i--, 1);
-            game.sounds.playSound('bang');
+            //game.sounds.playSound('bang');
         }
     }
 
@@ -526,7 +526,7 @@ PlayState.prototype.update = function(game, dt) {
                 bomb.y >= (this.ship.y - this.ship.height/2) && bomb.y <= (this.ship.y + this.ship.height/2)) {
             this.bombs.splice(i--, 1);
             game.lives--;
-            game.sounds.playSound('explosion');
+            //game.sounds.playSound('explosion');
         }
                 
     }
@@ -540,7 +540,7 @@ PlayState.prototype.update = function(game, dt) {
             (invader.y - invader.height/2) < (this.ship.y + this.ship.height/2)) {
             //  Dead by collision!
             game.lives = 0;
-            game.sounds.playSound('explosion');
+            //game.sounds.playSound('explosion');
         }
     }
 
@@ -563,14 +563,16 @@ PlayState.prototype.draw = function(game, dt, ctx) {
     ctx.clearRect(0, 0, game.width, game.height);
     
     //  Draw ship.
-    ctx.fillStyle = '#999999';
-    ctx.fillRect(this.ship.x - (this.ship.width / 2), this.ship.y - (this.ship.height / 2), this.ship.width, this.ship.height);
+    var image = new Image();
+    image.src = 'https://png2.cleanpng.com/sh/4b76d7239e4a62c09352c76dd3635ba9/L0KzQYm3WcMxN6J3e5H0aYP2gLBuTgZqe6ZmhJ98dIXnebE0gB9lbV5ygdV7b4PydsW0lvl0fZJxReV9dXTsf376gBFtaZNxRehyc4XkfH76lQVlcZCye9HtZT3vf7j2TgBvb155itN3c4Dkgrb1lL10fpgyjtdsdD24crO4VMllO2k3eaNuMz68Q4G5UMUxP2I6S6o8NEW3Qoi8U8UyNqFzf3==/kisspng-visual-studio-code-microsoft-visual-studio-scalabl-visual-studio-code-logo-png-transparent-svg-vect-5bb149d382a1e3.9302050715383454275351.png';
+    ctx.drawImage(image, this.ship.x - (this.ship.width / 2), this.ship.y - (this.ship.height / 2), this.ship.width, this.ship.height);
 
     //  Draw invaders.
-    ctx.fillStyle = '#006600';
+    var image = new Image();
+    image.src = 'http://icons.iconarchive.com/icons/dakirby309/simply-styled/256/Microsoft-Visual-Studio-icon.png';
     for(var i=0; i<this.invaders.length; i++) {
         var invader = this.invaders[i];
-        ctx.fillRect(invader.x - invader.width/2, invader.y - invader.height/2, invader.width, invader.height);
+        ctx.drawImage(image, invader.x - invader.width/2, invader.y - invader.height/2, invader.width, invader.height);
     }
 
     //  Draw bombs.
@@ -635,7 +637,7 @@ PlayState.prototype.fireRocket = function() {
         this.lastRocketTime = (new Date()).valueOf();
 
         //  Play the 'shoot' sound.
-        game.sounds.playSound('shoot');
+        //game.sounds.playSound('shoot');
     }
 };
 
@@ -722,8 +724,8 @@ LevelIntroState.prototype.draw = function(game, dt, ctx) {
 function Ship(x, y) {
     this.x = x;
     this.y = y;
-    this.width = 20;
-    this.height = 16;
+    this.width = 60;
+    this.height = 48;
 }
 
 /*
@@ -762,8 +764,8 @@ function Invader(x, y, rank, file, type) {
     this.rank = rank;
     this.file = file;
     this.type = type;
-    this.width = 18;
-    this.height = 14;
+    this.width = 54;
+    this.height = 42;
 }
 
 /*
@@ -805,7 +807,9 @@ Sounds.prototype.init = function() {
 
     //  Create the audio context, paying attention to webkit browsers.
     context = window.AudioContext || window.webkitAudioContext;
+
     this.audioContext = new context();
+    this.audioContext.resume();
     this.mute = false;
 };
 
@@ -822,9 +826,16 @@ Sounds.prototype.loadSound = function(name, url) {
     req.open('GET', url, true);
     req.responseType = 'arraybuffer';
     req.onload = function() {
+        console.log('Sound loaded ' + name);
+        console.log(req);
+        console.log(req.response.byteLength);
+
         self.audioContext.decodeAudioData(req.response, function(buffer) {
             self.sounds[name] = {buffer: buffer};
-        });
+
+            console.log('Sound decoded ' + name);
+        },
+        function(e){ console.log("Error with decoding audio data : " + e); });
     };
     try {
       req.send();
@@ -837,6 +848,7 @@ Sounds.prototype.loadSound = function(name, url) {
 
 Sounds.prototype.playSound = function(name) {
 
+    console.log('PlaySound ' + name);
     //  If we've not got the sound, don't bother playing it.
     if(this.sounds[name] === undefined || this.sounds[name] === null || this.mute === true) {
         return;
